@@ -3,9 +3,9 @@
   "name": "my-deadline",
   "version": "1.0.0",
   "private": true,
-  "description": "Personal Android assignment deadline manager",
+  "description": "Personal assignment deadline manager",
   "scripts": {
-    "build": "vite build --root www --outDir ../dist",
+    "build": "vite build www --outDir ../dist",
     "android:sync": "cap sync android"
   },
   "dependencies": {
