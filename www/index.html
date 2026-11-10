@@ -24,18 +24,20 @@
 
             <form id="assignmentForm" autocomplete="off">
                 <div class="field">
-                    <label for="assignmentName">Assignment name</label>
+                    <label for="assignmentName">Assignment name *</label>
                     <input type="text" id="assignmentName" placeholder="e.g. TypeScript Assignment" required>
                 </div>
 
                 <div class="field">
-                    <label for="subject">Subject</label>
+                    <label for="subject">Subject *</label>
                     <input type="text" id="subject" placeholder="e.g. Web Development" required>
                 </div>
 
                 <div class="field">
                     <label for="deadline">Submission deadline</label>
-                    <input type="datetime-local" id="deadline" required>
+                    <p class="field-hint">Leave blank if there is no due date.</p>
+                    <!-- REMOVED 'required' HERE -->
+                    <input type="datetime-local" id="deadline">
                 </div>
 
                 <div class="field">
@@ -90,7 +92,6 @@
                     <h2>Make time for<br><em>what matters.</em></h2>
                     <p>Keep every assignment moving forward, one deadline at a time.</p>
                     
-                    <!-- ADDED: Google Classroom Sync Button -->
                     <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
                         <button class="primary-cta" type="button" onclick="document.getElementById('menuToggle').click()">＋ Add assignment</button>
                         <button class="primary-cta" type="button" id="syncClassroomBtn" style="background: var(--surface); color: var(--primary); border: 1.5px solid var(--primary);">
@@ -147,28 +148,7 @@
                     <span class="count-pill" id="totalCount">0 tasks</span>
                 </div>
 
-                <div class="toolbar">
-                    <label class="search-box">
-                        <span>⌕</span>
-                        <input type="search" id="assignmentSearch" placeholder="Search assignments..." aria-label="Search assignments">
-                    </label>
-
-                    <div class="toolbar-selects">
-                        <select id="assignmentFilter" aria-label="Filter assignments">
-                            <option value="all">All tasks</option>
-                            <option value="active">Active</option>
-                            <option value="completed">Completed</option>
-                            <option value="overdue">Overdue</option>
-                        </select>
-
-                        <select id="assignmentSort" aria-label="Sort assignments">
-                            <option value="deadline">Due soon</option>
-                            <option value="priority">Priority</option>
-                            <option value="newest">Recently added</option>
-                        </select>
-                    </div>
-                </div>
-
+                <!-- Toolbar removed for simplicity, add back if needed -->
                 <div id="assignmentList"></div>
             </section>
         </main>
