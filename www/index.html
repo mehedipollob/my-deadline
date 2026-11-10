@@ -3,23 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#635bff">
+    <meta name="theme-color" content="#3d3fe6">
     <meta name="description" content="A focused space to organize assignments and never miss a deadline.">
     <title>My Deadline</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Lucide icon sprite (inline, no external dependency) -->
+    <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+        <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+        <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+        <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+        <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+        <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+        <symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+        <symbol id="i-cap" viewBox="0 0 24 24"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></symbol>
+    </svg>
+
+    <a class="skip-link" href="#assignmentSection">Skip to assignments</a>
+
     <div class="app-shell">
         <div class="overlay" id="overlay"></div>
 
         <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Add assignment">
             <div class="drawer-header">
                 <div>
-                    <span class="eyebrow">STAY ON TRACK</span>
+                    <span class="eyebrow">Stay on track</span>
                     <h2>New assignment</h2>
                     <p class="drawer-sub">Add the details and we’ll keep an eye on the deadline.</p>
                 </div>
-                <button class="icon-button" id="drawerClose" aria-label="Close form">✕</button>
+                <button class="icon-button" id="drawerClose" aria-label="Close form"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button>
             </div>
 
             <form id="assignmentForm" autocomplete="off">
@@ -63,14 +80,12 @@
                     </div>
                 </div>
 
-                <button type="submit" class="add-button">＋ Save assignment</button>
+                <button type="submit" class="add-button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Save assignment</button>
             </form>
         </aside>
 
         <header class="header">
             <div class="header-content">
-                <button class="icon-button menu-button" id="menuToggle" aria-label="Add assignment" aria-controls="drawer" aria-expanded="false">＋</button>
-
                 <div class="brand">
                     <div class="brand-mark">D</div>
                     <div class="header-title">
@@ -79,6 +94,8 @@
                     </div>
                 </div>
 
+                <button class="icon-button menu-button" id="menuToggle" aria-label="Add assignment" aria-controls="drawer" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg><span class="menu-label">Add assignment</span></button>
+
                 <button class="icon-button theme-button" id="themeToggle" aria-label="Toggle theme">☾</button>
             </div>
         </header>
@@ -86,16 +103,14 @@
         <main class="container">
             <section class="welcome-panel">
                 <div class="welcome-copy">
-                    <span class="eyebrow">YOUR ACADEMIC SPACE</span>
-                    <h2>Make time for<br><em>what matters.</em></h2>
+                    <span class="eyebrow">Your academic space</span>
+                    <h2>Make time for<br>what matters.</h2>
                     <p>Keep every assignment moving forward, one deadline at a time.</p>
-                    
+
                     <!-- GOOGLE CLASSROOM SYNC BUTTON -->
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
-                        <button class="primary-cta" type="button" onclick="document.getElementById('menuToggle').click()">＋ Add assignment</button>
-                        <button class="primary-cta" type="button" id="syncClassroomBtn" style="background: var(--surface); color: var(--primary); border: 1.5px solid var(--primary);">
-                            🎓 Sync Classroom
-                        </button>
+                    <div class="hero-actions">
+                        <button class="primary-cta" type="button" onclick="document.getElementById('menuToggle').click()"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add assignment</button>
+                        <button class="primary-cta is-secondary" type="button" id="syncClassroomBtn"><svg class="icon" aria-hidden="true"><use href="#i-cap"/></svg>Sync Classroom</button>
                     </div>
                 </div>
 
@@ -103,9 +118,9 @@
                     <div class="art-orbit orbit-one"></div>
                     <div class="art-orbit orbit-two"></div>
                     <div class="art-card">
-                        <span>✓</span>
+                        <span><svg class="icon"><use href="#i-check"/></svg></span>
                         <b>One step<br>at a time</b>
-                        <small>FOCUS MODE</small>
+                        <small>Focus mode</small>
                     </div>
                     <div class="art-dot dot-one"></div>
                     <div class="art-dot dot-two"></div>
@@ -115,22 +130,22 @@
             <section class="stats-section" aria-label="Assignment overview">
                 <div class="section-heading">
                     <div>
-                        <span class="eyebrow">AT A GLANCE</span>
+                        <span class="eyebrow">At a glance</span>
                         <h2>Your overview</h2>
                     </div>
-                    <span class="live-label"><i></i> LIVE</span>
+                    <span class="live-label"><i></i> Live</span>
                 </div>
 
                 <div class="stats">
                     <div class="stat stat-active">
-                        <span class="stat-icon">◷</span>
+                        <span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg></span>
                         <span class="stat-label">Active</span>
                         <strong id="activeCount">0</strong>
                         <small>In progress</small>
                     </div>
 
                     <div class="stat stat-done">
-                        <span class="stat-icon">✓</span>
+                        <span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#i-circle-check"/></svg></span>
                         <span class="stat-label">Completed</span>
                         <strong id="completedCount">0</strong>
                         <small>Well done</small>
@@ -138,10 +153,10 @@
                 </div>
             </section>
 
-            <section class="assignment-section">
+            <section class="assignment-section" id="assignmentSection">
                 <div class="section-heading assignment-heading">
                     <div>
-                        <span class="eyebrow">KEEP MOVING</span>
+                        <span class="eyebrow">Keep moving</span>
                         <h2>My assignments</h2>
                     </div>
                     <span class="count-pill" id="totalCount">0 tasks</span>
@@ -149,7 +164,7 @@
 
                 <div class="toolbar">
                     <label class="search-box">
-                        <span>⌕</span>
+                        <span><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg></span>
                         <input type="search" id="assignmentSearch" placeholder="Search assignments..." aria-label="Search assignments">
                     </label>
 
@@ -176,7 +191,7 @@
         <footer>
             <span class="footer-mark">D</span>
             <p>Made for your academic success.</p>
-            <small>MY DEADLINE · STAY FOCUSED</small>
+            <small>My Deadline · Stay focused</small>
         </footer>
 
         <div id="toastHost" class="toast-host" aria-live="polite"></div>
