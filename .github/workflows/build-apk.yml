@@ -56,6 +56,7 @@ jobs:
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/signing/my-deadline-release.jks"
           test -s "$RUNNER_TEMP/signing/my-deadline-release.jks"
 
+      
       - name: Configure release signing
         run: |
           python3 - <<'PY'
@@ -77,21 +78,42 @@ jobs:
           """
 
           if "signingConfigs {" not in content:
-              content = content.replace("android {", "android {\n" + signing, 1)
+              content = content.replace(
+                  "android {",
+                  "android {\n" + signing,
+                  1
+              )
 
-          pattern = r"(buildTypes\\s*\\{\\s*release\\s*\\{)"
-          replacement = (
-              r"\\1\n"
-              "            signingConfig signingConfigs.release\n"
-              "            minifyEnabled false"
+          build = re.search(r'buildTypes\s*\{', content)
+
+          if not build:
+              raise SystemExit("Could not find buildTypes block")
+
+          release = re.search(
+              r'release\s*\{',
+              content[build.end():]
           )
 
-          content, count = re.subn(pattern, replacement, content, count=1)
-
-          if count != 1:
-              raise SystemExit("Could not find the release build type in build.gradle")
+          if release:
+              pos = build.end() + release.end()
+              if "signingConfig signingConfigs.release" not in content:
+                  content = (
+                      content[:pos]
+                      + "\n            signingConfig signingConfigs.release"
+                      + content[pos:]
+                  )
+          else:
+              pos = build.end()
+              content = (
+                  content[:pos]
+                  + "\n        release {\n"
+                    "            signingConfig signingConfigs.release\n"
+                    "        }\n"
+                  + content[pos:]
+              )
 
           path.write_text(content)
+          print("Release signing configured successfully.")
           PY
 
       - name: Build signed release APK
