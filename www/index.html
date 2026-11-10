@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -90,7 +89,14 @@
                     <span class="eyebrow">YOUR ACADEMIC SPACE</span>
                     <h2>Make time for<br><em>what matters.</em></h2>
                     <p>Keep every assignment moving forward, one deadline at a time.</p>
-                    <button class="primary-cta" type="button" onclick="document.getElementById('menuToggle').click()">＋ Add assignment</button>
+                    
+                    <!-- ADDED: Google Classroom Sync Button -->
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+                        <button class="primary-cta" type="button" onclick="document.getElementById('menuToggle').click()">＋ Add assignment</button>
+                        <button class="primary-cta" type="button" id="syncClassroomBtn" style="background: var(--surface); color: var(--primary); border: 1.5px solid var(--primary);">
+                            🎓 Sync Classroom
+                        </button>
+                    </div>
                 </div>
 
                 <div class="welcome-art" aria-hidden="true">
@@ -103,47 +109,6 @@
                     </div>
                     <div class="art-dot dot-one"></div>
                     <div class="art-dot dot-two"></div>
-                </div>
-            </section>
-
-            <!-- GOOGLE CLASSROOM -->
-            <section class="classroom-section" aria-label="Google Classroom integration">
-                <div class="section-heading">
-                    <div>
-                        <span class="eyebrow">YOUR CLASSROOM</span>
-                        <h2>Google Classroom</h2>
-                    </div>
-                    <span class="classroom-status" id="classroomStatus">Not connected</span>
-                </div>
-
-                <div class="classroom-card">
-                    <div class="classroom-info">
-                        <div class="classroom-icon" aria-hidden="true">G</div>
-                        <div>
-                            <h3>Connect your account</h3>
-                            <p id="classroomMessage">
-                                Import your published coursework and keep deadlines together.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="classroom-actions">
-                        <button type="button" class="classroom-button" id="classroomConnect">
-                            Connect Google Classroom
-                        </button>
-
-                        <button type="button" class="classroom-button secondary" id="classroomImport" disabled>
-                            Import assignments
-                        </button>
-
-                        <button type="button" class="classroom-disconnect" id="classroomDisconnect" hidden>
-                            Disconnect
-                        </button>
-                    </div>
-
-                    <p class="classroom-note">
-                        Read-only access. Your Classroom assignments will be imported into My Deadline.
-                    </p>
                 </div>
             </section>
 
