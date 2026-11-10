@@ -1,11 +1,8 @@
-
-import { LocalNotifications } from
-    "@capacitor/local-notifications";
-
+import { LocalNotifications } from "@capacitor/local-notifications";
 import { Capacitor } from "@capacitor/core";
 
 // ==============================
-// MY DEADLINE - JAVASCRIPT
+// MY DEADLINE — JAVASCRIPT
 // ==============================
 
 const STORAGE_KEY = "myDeadlineAssignments";
@@ -14,8 +11,8 @@ let assignments = JSON.parse(
     localStorage.getItem(STORAGE_KEY) || "[]"
 );
 
-// Reminder intervals
-const REMINDERS = [
+// Default reminders (1 day, 6 hours, 1 hour)
+const DEFAULT_REMINDERS = [
     { label: "1 day", time: 24 * 60 * 60 * 1000 },
     { label: "6 hours", time: 6 * 60 * 60 * 1000 },
     { label: "1 hour", time: 60 * 60 * 1000 }
@@ -23,30 +20,47 @@ const REMINDERS = [
 
 // HTML elements
 const form = document.getElementById("assignmentForm");
-const assignmentList =
-    document.getElementById("assignmentList");
+const assignmentList = document.getElementById("assignmentList");
 
-const activeCount =
-    document.getElementById("activeCount");
+const activeCount = document.getElementById("activeCount");
+const completedCount = document.getElementById("completedCount");
+const totalCount = document.getElementById("totalCount");
 
-const completedCount =
-    document.getElementById("completedCount");
+const themeToggle = document.getElementById("themeToggle");
+const menuToggle = document.getElementById("menuToggle");
 
-const totalCount =
-    document.getElementById("totalCount");
+const drawer = document.getElementById("drawer");
+const drawerClose = document.getElementById("drawerClose");
+const overlay = document.getElementById("overlay");
+const toastHost = document.getElementById("toastHost");
 
-const themeToggle =
-    document.getElementById("themeToggle");
+const reminderChips = document.getElementById("reminderChips");
+
+// ==============================
+// TOASTS
+// ==============================
+
+function showToast(message, type = "success") {
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+
+    toastHost.appendChild(toast);
+
+    requestAnimationFrame(() => toast.classList.add("show"));
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.remove(), 320);
+    }, 2600);
+}
 
 // ==============================
 // SAVE ASSIGNMENTS
 // ==============================
 
 function saveAssignments() {
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(assignments)
-    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(assignments));
 }
 
 // ==============================
@@ -54,8 +68,7 @@ function saveAssignments() {
 // ==============================
 
 function generateId() {
-    return Date.now().toString() +
-        Math.floor(Math.random() * 1000);
+    return Date.now().toString() + Math.floor(Math.random() * 1000);
 }
 
 // ==============================
@@ -64,10 +77,24 @@ function generateId() {
 
 function formatForInput(date) {
     const d = new Date(date);
-
     const pad = n => String(n).padStart(2, "0");
 
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// ==============================
+// READ SELECTED REMINDERS
+// ==============================
+
+function getSelectedReminders() {
+    return [...reminderChips.querySelectorAll("input:checked")]
+        .map(input => ({
+            label: input.parentElement.querySelector("span")
+                .textContent.trim(),
+            time: Number(input.value) * 60 * 1000
+        }))
+        // Largest offset first = earliest notification first
+        .sort((a, b) => b.time - a.time);
 }
 
 // ==============================
@@ -75,21 +102,16 @@ function formatForInput(date) {
 // ==============================
 
 async function requestNotificationPermission() {
-    if (!Capacitor.isNativePlatform()) {
-        return false;
-    }
+    if (!Capacitor.isNativePlatform()) return false;
 
     try {
-        let permission =
-            await LocalNotifications.checkPermissions();
+        let permission = await LocalNotifications.checkPermissions();
 
         if (permission.display !== "granted") {
-            permission =
-                await LocalNotifications.requestPermissions();
+            permission = await LocalNotifications.requestPermissions();
         }
 
         return permission.display === "granted";
-
     } catch (error) {
         console.error("Notification permission:", error);
         return false;
@@ -97,18 +119,13 @@ async function requestNotificationPermission() {
 }
 
 async function cancelReminders(task) {
-    if (
-        !Capacitor.isNativePlatform() ||
-        !task.notificationIds?.length
-    ) {
+    if (!Capacitor.isNativePlatform() || !task.notificationIds?.length) {
         return;
     }
 
     try {
         await LocalNotifications.cancel({
-            notifications: task.notificationIds.map(id => ({
-                id
-            }))
+            notifications: task.notificationIds.map(id => ({ id }))
         });
     } catch (error) {
         console.error("Cancel reminders:", error);
@@ -120,24 +137,31 @@ async function cancelReminders(task) {
 async function scheduleReminders(task) {
     if (!Capacitor.isNativePlatform()) return;
 
-    const permission =
-        await requestNotificationPermission();
-
+    const permission = await requestNotificationPermission();
     if (!permission) return;
 
     await cancelReminders(task);
 
+    // Use this task's own reminders (empty array = no notifications)
+    const reminders = Array.isArray(task.reminders)
+        ? task.reminders
+        : DEFAULT_REMINDERS;
+
+    if (reminders.length === 0) {
+        saveAssignments();
+        return;
+    }
+
     const deadline = new Date(task.deadline).getTime();
     const now = Date.now();
 
-    const nextId = Number(
-        localStorage.getItem("myDeadlineNextNotificationId")
-    ) || 1000;
+    const nextId =
+        Number(localStorage.getItem("myDeadlineNextNotificationId")) || 1000;
 
     let counter = nextId;
     const notifications = [];
 
-    REMINDERS.forEach(reminder => {
+    reminders.forEach(reminder => {
         const reminderTime = deadline - reminder.time;
 
         if (reminderTime > now) {
@@ -147,25 +171,18 @@ async function scheduleReminders(task) {
                 id,
                 title: "My Deadline ⏰",
                 body: `${task.name} is due in ${reminder.label}!`,
-                schedule: {
-                    at: new Date(reminderTime)
-                }
+                schedule: { at: new Date(reminderTime) }
             });
 
             task.notificationIds.push(id);
         }
     });
 
-    localStorage.setItem(
-        "myDeadlineNextNotificationId",
-        String(counter)
-    );
+    localStorage.setItem("myDeadlineNextNotificationId", String(counter));
 
     if (notifications.length > 0) {
         try {
-            await LocalNotifications.schedule({
-                notifications
-            });
+            await LocalNotifications.schedule({ notifications });
         } catch (error) {
             console.error("Schedule reminders:", error);
             task.notificationIds = [];
@@ -176,34 +193,59 @@ async function scheduleReminders(task) {
 }
 
 // ==============================
+// DRAWER (HAMBURGER MENU)
+// ==============================
+
+function openDrawer() {
+    drawer.classList.add("open");
+    overlay.classList.add("open");
+    drawer.setAttribute("aria-hidden", "false");
+    menuToggle.setAttribute("aria-expanded", "true");
+    document.body.classList.add("no-scroll");
+
+    setTimeout(() => {
+        document.getElementById("assignmentName").focus();
+    }, 320);
+}
+
+function closeDrawer() {
+    drawer.classList.remove("open");
+    overlay.classList.remove("open");
+    drawer.setAttribute("aria-hidden", "true");
+    menuToggle.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("no-scroll");
+}
+
+menuToggle.addEventListener("click", openDrawer);
+drawerClose.addEventListener("click", closeDrawer);
+overlay.addEventListener("click", closeDrawer);
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeDrawer();
+});
+
+// ==============================
 // ADD ASSIGNMENT
 // ==============================
 
-form.addEventListener("submit", async function(event) {
+form.addEventListener("submit", async function (event) {
     event.preventDefault();
 
-    const name =
-        document.getElementById("assignmentName").value.trim();
+    const name = document.getElementById("assignmentName").value.trim();
+    const subject = document.getElementById("subject").value.trim();
+    const deadline = document.getElementById("deadline").value;
+    const priority = document.getElementById("priority").value;
 
-    const subject =
-        document.getElementById("subject").value.trim();
-
-    const deadline =
-        document.getElementById("deadline").value;
-
-    const priority =
-        document.getElementById("priority").value;
-
+    const reminders = getSelectedReminders();
     const deadlineTime = new Date(deadline).getTime();
 
     if (!name || !subject || !deadline) {
-        alert("Please complete all fields.");
+        showToast("Please complete all fields.", "error");
         return;
     }
 
-    if (!Number.isFinite(deadlineTime) ||
-        deadlineTime <= Date.now()) {
-        alert("Please choose a future deadline.");
+    if (!Number.isFinite(deadlineTime) || deadlineTime <= Date.now()) {
+        showToast("Please choose a future deadline.", "error");
         return;
     }
 
@@ -214,20 +256,26 @@ form.addEventListener("submit", async function(event) {
         deadline: new Date(deadlineTime).toISOString(),
         priority,
         completed: false,
+        reminders,
         notificationIds: []
     };
 
     assignments.push(task);
 
     saveAssignments();
-
     await scheduleReminders(task);
 
+    // Reset form back to default chip selection
     form.reset();
 
+    closeDrawer();
     renderAssignments();
 
-    alert("Assignment added successfully!");
+    showToast(
+        reminders.length
+            ? "Assignment added ✓"
+            : "Added ✓ (no reminders set)"
+    );
 });
 
 // ==============================
@@ -235,28 +283,14 @@ form.addEventListener("submit", async function(event) {
 // ==============================
 
 function getCountdown(deadline) {
-    const difference =
-        new Date(deadline).getTime() - Date.now();
+    const difference = new Date(deadline).getTime() - Date.now();
 
-    if (difference <= 0) {
-        return null;
-    }
+    if (difference <= 0) return null;
 
-    const days = Math.floor(
-        difference / (1000 * 60 * 60 * 24)
-    );
-
-    const hours = Math.floor(
-        (difference / (1000 * 60 * 60)) % 24
-    );
-
-    const minutes = Math.floor(
-        (difference / (1000 * 60)) % 60
-    );
-
-    const seconds = Math.floor(
-        (difference / 1000) % 60
-    );
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((difference / (1000 * 60)) % 60);
+    const seconds = Math.floor((difference / 1000) % 60);
 
     return { days, hours, minutes, seconds };
 }
@@ -275,116 +309,139 @@ function renderAssignments() {
         assignments.filter(task => task.completed).length;
 
     totalCount.textContent =
-        `${assignments.length} tasks`;
+        `${assignments.length} task${assignments.length === 1 ? "" : "s"}`;
 
     if (assignments.length === 0) {
         assignmentList.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">📚</div>
                 <h3>No assignments yet</h3>
-                <p>Add your first assignment!</p>
+                <p>
+                    Tap <strong>☰</strong> in the top-left corner
+                    to add your first assignment.
+                </p>
             </div>
         `;
         return;
     }
 
     const sorted = [...assignments].sort(
-        (a, b) =>
-            new Date(a.deadline) - new Date(b.deadline)
+        (a, b) => new Date(a.deadline) - new Date(b.deadline)
     );
 
     sorted.forEach(task => {
-        const countdown =
-            getCountdown(task.deadline);
-
         const card = document.createElement("div");
         card.className = "assignment-card";
+        card.dataset.id = task.id;
+        card.dataset.priority = task.priority;
+
+        if (task.completed) card.classList.add("is-completed");
+
+        // --- Head ---
+        const head = document.createElement("div");
+        head.className = "card-head";
 
         const heading = document.createElement("h3");
         heading.textContent = task.name;
 
-        const subject = document.createElement("p");
-        subject.textContent = `Subject: ${task.subject}`;
+        const badge = document.createElement("span");
+        badge.className = `priority ${task.priority}`;
+        badge.textContent = task.priority;
 
-        const date = document.createElement("p");
-        date.textContent =
-            "Deadline: " +
-            new Date(task.deadline).toLocaleString();
+        head.append(heading, badge);
 
-        const priority = document.createElement("span");
-        priority.className = `priority ${task.priority}`;
-        priority.textContent = task.priority + " Priority";
+        // --- Meta ---
+        const meta = document.createElement("div");
+        meta.className = "card-meta";
 
-        card.append(heading, subject, date, priority);
+        const subject = document.createElement("span");
+        subject.textContent = `📚 ${task.subject}`;
 
-        if (task.completed) {
-            const status = document.createElement("p");
-            status.textContent = "✓ Completed";
-            card.append(status);
-        } else if (countdown) {
-            const timer = document.createElement("div");
-            timer.className = "countdown";
+        const date = document.createElement("span");
+        date.textContent = `⏰ ${new Date(task.deadline).toLocaleString()}`;
 
-            const units = [
-                ["Days", countdown.days],
-                ["Hours", countdown.hours],
-                ["Minutes", countdown.minutes],
-                ["Seconds", countdown.seconds]
-            ];
+        meta.append(subject, date);
 
-            units.forEach(([label, value]) => {
-                const box = document.createElement("div");
-                box.className = "time-box";
+        const reminders = Array.isArray(task.reminders)
+            ? task.reminders
+            : DEFAULT_REMINDERS;
 
-                const strong = document.createElement("strong");
-                strong.textContent = String(value).padStart(2, "0");
-
-                const small = document.createElement("small");
-                small.textContent = label;
-
-                box.append(strong, small);
-                timer.append(box);
-            });
-
-            card.append(timer);
-        } else {
-            const expired = document.createElement("p");
-            expired.textContent = "⚠️ Deadline passed";
-            card.append(expired);
+        if (reminders.length > 0) {
+            const reminderInfo = document.createElement("span");
+            reminderInfo.className = "reminders";
+            reminderInfo.textContent =
+                `🔔 ${reminders.map(r => r.label).join(", ")}`;
+            meta.append(reminderInfo);
         }
 
+        card.append(head, meta);
+
+        // --- Status / Countdown ---
+        if (task.completed) {
+            const status = document.createElement("div");
+            status.className = "status completed";
+            status.textContent = "✓ Completed";
+            card.append(status);
+        } else {
+            const countdown = getCountdown(task.deadline);
+
+            if (countdown) {
+                const timer = document.createElement("div");
+                timer.className = "countdown";
+
+                const units = [
+                    ["days", "Days"],
+                    ["hours", "Hours"],
+                    ["minutes", "Mins"],
+                    ["seconds", "Secs"]
+                ];
+
+                units.forEach(([unit, label]) => {
+                    const box = document.createElement("div");
+                    box.className = "time-box";
+
+                    const strong = document.createElement("strong");
+                    strong.textContent = String(countdown[unit]).padStart(2, "0");
+                    strong.dataset.unit = unit;
+
+                    const small = document.createElement("small");
+                    small.textContent = label;
+
+                    box.append(strong, small);
+                    timer.append(box);
+                });
+
+                card.append(timer);
+            } else {
+                const expired = document.createElement("div");
+                expired.className = "status expired";
+                expired.textContent = "⚠️ Deadline passed";
+                card.append(expired);
+            }
+        }
+
+        // --- Actions ---
         const actions = document.createElement("div");
         actions.className = "actions";
 
         if (!task.completed) {
             const complete = document.createElement("button");
-            complete.className = "complete-btn";
+            complete.className = "btn btn-complete";
             complete.textContent = "✓ Complete";
-
-            complete.addEventListener("click", () => {
-                completeAssignment(task.id);
-            });
-
-            actions.append(complete);
+            complete.addEventListener("click", () => completeAssignment(task.id));
 
             const edit = document.createElement("button");
-            edit.className = "complete-btn";
+            edit.className = "btn btn-edit";
             edit.textContent = "✎ Edit";
+            edit.addEventListener("click", () => editAssignment(task.id));
 
-            edit.addEventListener("click", () => {
-                editAssignment(task.id);
-            });
-
-            actions.append(edit);
+            actions.append(complete, edit);
         }
 
         const remove = document.createElement("button");
-        remove.className = "delete-btn";
+        remove.className = "btn btn-delete";
         remove.textContent = "Delete";
-
-        remove.addEventListener("click", () => {
-            deleteAssignment(task.id);
-        });
+        remove.addEventListener("click", () => deleteAssignment(task.id));
 
         actions.append(remove);
         card.append(actions);
@@ -394,14 +451,42 @@ function renderAssignments() {
 }
 
 // ==============================
+// LIVE COUNTDOWN UPDATER
+// ==============================
+
+function updateCountdowns() {
+    const cards = assignmentList.querySelectorAll(
+        ".assignment-card[data-id]"
+    );
+
+    let needsRerender = false;
+
+    cards.forEach(card => {
+        const task = assignments.find(item => item.id === card.dataset.id);
+        if (!task || task.completed) return;
+
+        const countdown = getCountdown(task.deadline);
+
+        if (!countdown) {
+            needsRerender = true;
+            return;
+        }
+
+        card.querySelectorAll("[data-unit]").forEach(el => {
+            const unit = el.dataset.unit;
+            el.textContent = String(countdown[unit]).padStart(2, "0");
+        });
+    });
+
+    if (needsRerender) renderAssignments();
+}
+
+// ==============================
 // COMPLETE ASSIGNMENT
 // ==============================
 
 async function completeAssignment(id) {
-    const task = assignments.find(
-        item => item.id === id
-    );
-
+    const task = assignments.find(item => item.id === id);
     if (!task) return;
 
     task.completed = true;
@@ -410,6 +495,8 @@ async function completeAssignment(id) {
 
     saveAssignments();
     renderAssignments();
+
+    showToast("Marked as complete ✓");
 }
 
 // ==============================
@@ -417,22 +504,19 @@ async function completeAssignment(id) {
 // ==============================
 
 async function deleteAssignment(id) {
-    const task = assignments.find(
-        item => item.id === id
-    );
-
+    const task = assignments.find(item => item.id === id);
     if (!task) return;
 
     if (!confirm("Delete this assignment?")) return;
 
     await cancelReminders(task);
 
-    assignments = assignments.filter(
-        item => item.id !== id
-    );
+    assignments = assignments.filter(item => item.id !== id);
 
     saveAssignments();
     renderAssignments();
+
+    showToast("Assignment deleted");
 }
 
 // ==============================
@@ -440,10 +524,7 @@ async function deleteAssignment(id) {
 // ==============================
 
 async function editAssignment(id) {
-    const task = assignments.find(
-        item => item.id === id
-    );
-
+    const task = assignments.find(item => item.id === id);
     if (!task) return;
 
     const name = prompt("Assignment name:", task.name);
@@ -456,14 +537,9 @@ async function editAssignment(id) {
         "Deadline (YYYY-MM-DDTHH:mm):",
         formatForInput(task.deadline)
     );
-
     if (deadline === null) return;
 
-    const priority = prompt(
-        "Priority: Low, Medium or High",
-        task.priority
-    );
-
+    const priority = prompt("Priority: Low, Medium or High", task.priority);
     if (priority === null) return;
 
     const newDeadline = new Date(deadline).getTime();
@@ -475,7 +551,7 @@ async function editAssignment(id) {
         newDeadline <= Date.now() ||
         !["Low", "Medium", "High"].includes(priority)
     ) {
-        alert("Invalid assignment information.");
+        showToast("Invalid assignment information.", "error");
         return;
     }
 
@@ -483,12 +559,14 @@ async function editAssignment(id) {
     task.subject = subject.trim();
     task.deadline = new Date(newDeadline).toISOString();
     task.priority = priority;
+    // task.reminders is preserved as-is
 
     await cancelReminders(task);
     saveAssignments();
     await scheduleReminders(task);
 
     renderAssignments();
+    showToast("Assignment updated ✓");
 }
 
 // ==============================
@@ -496,21 +574,13 @@ async function editAssignment(id) {
 // ==============================
 
 function applyTheme(theme) {
-    document.body.classList.toggle(
-        "dark",
-        theme === "dark"
-    );
-
-    themeToggle.textContent =
-        theme === "dark" ? "☀️" : "🌙";
-
+    document.body.classList.toggle("dark", theme === "dark");
+    themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
     localStorage.setItem("myDeadlineTheme", theme);
 }
 
 themeToggle.addEventListener("click", () => {
-    const isDark =
-        document.body.classList.contains("dark");
-
+    const isDark = document.body.classList.contains("dark");
     applyTheme(isDark ? "light" : "dark");
 });
 
@@ -518,14 +588,23 @@ themeToggle.addEventListener("click", () => {
 // START APP
 // ==============================
 
-const savedTheme =
-    localStorage.getItem("myDeadlineTheme") || "light";
+// Migrate older saved tasks that have no reminders field
+assignments.forEach(task => {
+    if (!Array.isArray(task.reminders)) {
+        task.reminders = DEFAULT_REMINDERS.map(reminder => ({ ...reminder }));
+    }
 
+    if (!Array.isArray(task.notificationIds)) {
+        task.notificationIds = [];
+    }
+});
+
+saveAssignments();
+
+const savedTheme = localStorage.getItem("myDeadlineTheme") || "light";
 applyTheme(savedTheme);
 
 renderAssignments();
 
-// Update countdown every second
-setInterval(() => {
-    renderAssignments();
-}, 1000);
+// Update countdown every second (in place — no full re-render)
+setInterval(updateCountdowns, 1000);
