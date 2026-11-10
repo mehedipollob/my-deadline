@@ -1,0 +1,338 @@
+/* =========================
+   MY DEADLINE - MAIN DESIGN
+========================= */
+
+:root {
+    --bg: #f4f7fb;
+    --card: #ffffff;
+    --text: #172033;
+    --muted: #718096;
+    --primary: #2563eb;
+    --border: #e5eaf1;
+    --input: #f8fafc;
+    --shadow: 0 4px 16px rgba(0,0,0,0.04);
+}
+
+body.dark {
+    --bg: #101827;
+    --card: #1c293b;
+    --text: #f1f5f9;
+    --muted: #a0aec0;
+    --primary: #60a5fa;
+    --border: #334155;
+    --input: #263449;
+    --shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: background 0.25s, color 0.25s;
+    min-height: 100vh;
+}
+
+/* HEADER */
+
+.header {
+    background: var(--card);
+    padding: 22px 18px;
+    box-shadow: var(--shadow);
+}
+
+.header-content {
+    max-width: 700px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header h1 {
+    font-size: 25px;
+    color: var(--primary);
+}
+
+.header p {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.theme-button {
+    width: 43px;
+    height: 43px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: var(--bg);
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* MAIN CONTAINER */
+
+.container {
+    max-width: 700px;
+    margin: auto;
+    padding: 20px 16px;
+}
+
+/* SUMMARY */
+
+.summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.summary-card {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+}
+
+.summary-card span {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.summary-card h2 {
+    font-size: 30px;
+    margin-top: 8px;
+    color: var(--primary);
+}
+
+/* FORM */
+
+.form-section,
+.assignment-section {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 22px;
+}
+
+h2 {
+    font-size: 19px;
+    margin-bottom: 18px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+label {
+    font-size: 13px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--input);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+}
+
+input:focus,
+select:focus {
+    border-color: var(--primary);
+}
+
+/* BUTTON */
+
+.add-button {
+    margin-top: 12px;
+    padding: 15px;
+    border: none;
+    border-radius: 11px;
+    background: var(--primary);
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.add-button:active {
+    opacity: 0.8;
+}
+
+/* ASSIGNMENT HEADING */
+
+.section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-heading span {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+/* EMPTY STATE */
+
+.empty-state {
+    text-align: center;
+    padding: 30px 10px;
+}
+
+.empty-icon {
+    font-size: 42px;
+    margin-bottom: 12px;
+}
+
+.empty-state h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* ASSIGNMENT CARDS */
+
+.assignment-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 16px;
+    border-radius: 13px;
+    margin-bottom: 13px;
+}
+
+.assignment-card h3 {
+    font-size: 16px;
+    margin-bottom: 6px;
+}
+
+.assignment-card p {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 6px 0;
+}
+
+.countdown {
+    display: flex;
+    gap: 7px;
+    margin: 14px 0;
+}
+
+.time-box {
+    flex: 1;
+    text-align: center;
+    padding: 10px 3px;
+    background: var(--card);
+    border-radius: 9px;
+    border: 1px solid var(--border);
+}
+
+.time-box strong {
+    display: block;
+    color: var(--primary);
+    font-size: 19px;
+}
+
+.time-box small {
+    color: var(--muted);
+    font-size: 10px;
+}
+
+/* PRIORITY */
+
+.priority {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.priority.High {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.priority.Medium {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.priority.Low {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+/* ACTION BUTTONS */
+
+.actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.actions button {
+    flex: 1;
+    padding: 10px 5px;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.complete-btn {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.delete-btn {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* FOOTER */
+
+footer {
+    text-align: center;
+    padding: 20px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* MOBILE */
+
+@media (max-width: 380px) {
+    .container {
+        padding: 14px 10px;
+    }
+
+    .form-section,
+    .assignment-section {
+        padding: 15px;
+    }
+
+    .time-box strong {
+        font-size: 16px;
+    }
+}
