@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#2563eb">
+
+    <meta name="description"
+          content="Manage your assignment deadlines">
+
+    <title>My Deadline</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="header-content">
+            <div>
+                <h1>My Deadline</h1>
+                <p>Stay organized. Never miss a deadline.</p>
+            </div>
+
+            <button id="themeToggle" class="theme-button">
+                🌙
+            </button>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- Dashboard summary -->
+
+        <section class="summary">
+
+            <div class="summary-card">
+                <span>Active</span>
+                <h2 id="activeCount">0</h2>
+            </div>
+
+            <div class="summary-card">
+                <span>Completed</span>
+                <h2 id="completedCount">0</h2>
+            </div>
+
+        </section>
+
+        <!-- Add assignment -->
+
+        <section class="form-section">
+
+            <h2>Add Assignment</h2>
+
+            <form id="assignmentForm">
+
+                <label for="assignmentName">
+                    Assignment Name
+                </label>
+
+                <input
+                    type="text"
+                    id="assignmentName"
+                    placeholder="e.g. TypeScript Assignment"
+                    required
+                >
+
+                <label for="subject">
+                    Subject
+                </label>
+
+                <input
+                    type="text"
+                    id="subject"
+                    placeholder="e.g. Web Development"
+                    required
+                >
+
+                <label for="deadline">
+                    Submission Deadline
+                </label>
+
+                <input
+                    type="datetime-local"
+                    id="deadline"
+                    required
+                >
+
+                <label for="priority">
+                    Priority
+                </label>
+
+                <select id="priority">
+                    <option value="Low">Low</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="High">High</option>
+                </select>
+
+                <button type="submit" class="add-button">
+                    + Add Assignment
+                </button>
+
+            </form>
+
+        </section>
+
+        <!-- Assignment list -->
+
+        <section class="assignment-section">
+
+            <div class="section-heading">
+                <h2>My Assignments</h2>
+                <span id="totalCount">0 tasks</span>
+            </div>
+
+            <div id="assignmentList">
+
+                <div class="empty-state">
+                    <div class="empty-icon">📚</div>
+
+                    <h3>No assignments yet</h3>
+
+                    <p>
+                        Add your first assignment
+                        to start tracking deadlines.
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Made for your academic success ❤️</p>
+    </footer>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
