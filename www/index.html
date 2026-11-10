@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -102,6 +103,47 @@
                     </div>
                     <div class="art-dot dot-one"></div>
                     <div class="art-dot dot-two"></div>
+                </div>
+            </section>
+
+            <!-- GOOGLE CLASSROOM -->
+            <section class="classroom-section" aria-label="Google Classroom integration">
+                <div class="section-heading">
+                    <div>
+                        <span class="eyebrow">YOUR CLASSROOM</span>
+                        <h2>Google Classroom</h2>
+                    </div>
+                    <span class="classroom-status" id="classroomStatus">Not connected</span>
+                </div>
+
+                <div class="classroom-card">
+                    <div class="classroom-info">
+                        <div class="classroom-icon" aria-hidden="true">G</div>
+                        <div>
+                            <h3>Connect your account</h3>
+                            <p id="classroomMessage">
+                                Import your published coursework and keep deadlines together.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="classroom-actions">
+                        <button type="button" class="classroom-button" id="classroomConnect">
+                            Connect Google Classroom
+                        </button>
+
+                        <button type="button" class="classroom-button secondary" id="classroomImport" disabled>
+                            Import assignments
+                        </button>
+
+                        <button type="button" class="classroom-disconnect" id="classroomDisconnect" hidden>
+                            Disconnect
+                        </button>
+                    </div>
+
+                    <p class="classroom-note">
+                        Read-only access. Your Classroom assignments will be imported into My Deadline.
+                    </p>
                 </div>
             </section>
 
