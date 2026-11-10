@@ -6,9 +6,6 @@ import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 // MY DEADLINE — JAVASCRIPT
 // ==============================
 
-// REMOVE the GoogleAuth.initialize() block from here. 
-// It is now handled by capacitor.config.json
-
 const STORAGE_KEY = "myDeadlineAssignments";
 
 let assignments = JSON.parse(
@@ -82,6 +79,8 @@ function generateId() {
 
 function formatDate(isoString) {
     const d = new Date(isoString);
+    if (isNaN(d.getTime())) return "No valid date"; // Safety check
+
     const datePart = d.toLocaleDateString(undefined, { 
         month: 'short', 
         day: 'numeric', 
@@ -216,38 +215,28 @@ async function scheduleReminders(task) {
 // ==============================
 // GOOGLE CLASSROOM SYNC
 // ==============================
+
 syncClassroomBtn.addEventListener('click', async () => {
     try {
         showToast("Connecting to Google...", "success");
         
-        // 1. Sign in and get the access token
         const user = await GoogleAuth.signIn();
-        
-        if (!user || !user.authentication || !user.authentication.accessToken) {
-            throw new Error("No access token received from Google.");
-        }
-
         const accessToken = user.authentication.accessToken;
+        
         showToast("Fetching your courses...", "success");
 
-        // 2. Get the list of courses
         const coursesRes = await fetch('https://classroom.googleapis.com/v1/courses', {
             headers: { Authorization: `Bearer ${accessToken}` }
         });
         const coursesData = await coursesRes.json();
         
-        if (coursesData.error) {
-            throw new Error(`API Error: ${coursesData.error.message}`);
-        }
-
         if (!coursesData.courses) {
-            showToast("No courses found on this account.", "error");
+            showToast("No courses found.", "error");
             return;
         }
 
         let newAssignmentsCount = 0;
 
-        // 3. Loop through each course to get assignments
         for (const course of coursesData.courses) {
             const workRes = await fetch(`https://classroom.googleapis.com/v1/courses/${course.id}/courseWork`, {
                 headers: { Authorization: `Bearer ${accessToken}` }
@@ -256,15 +245,33 @@ syncClassroomBtn.addEventListener('click', async () => {
 
             if (workData.courseWork) {
                 for (const work of workData.courseWork) {
+                    // 1. Skip if there is no due date at all
                     if (!work.dueDate) continue;
 
                     const d = work.dueDate;
+                    // 2. Skip if the date is missing critical parts (year, month, day)
+                    if (!d.year || !d.month || !d.day) continue; 
+
+                    // 3. Safely handle time (default to 11:59 PM if missing)
                     const t = work.dueTime || { hours: 23, minutes: 59 }; 
-                    const deadlineDate = new Date(d.year, d.month - 1, d.day, t.hours, t.minutes);
+                    const hours = t.hours !== undefined ? t.hours : 23;
+                    const minutes = t.minutes !== undefined ? t.minutes : 59;
+
+                    // 4. Create the date
+                    const deadlineDate = new Date(d.year, d.month - 1, d.day, hours, minutes);
+                    
+                    // 5. Double check if it created a valid date
+                    if (isNaN(deadlineDate.getTime())) {
+                        console.warn("Skipped invalid date for assignment:", work.title);
+                        continue;
+                    }
+
                     const deadlineISO = deadlineDate.toISOString();
 
+                    // Skip past assignments
                     if (deadlineDate.getTime() <= Date.now()) continue;
 
+                    // Check if we already imported this exact assignment
                     const exists = assignments.find(a => a.name === work.title && a.subject === course.name);
                     if (exists) continue;
 
@@ -292,12 +299,11 @@ syncClassroomBtn.addEventListener('click', async () => {
         if (newAssignmentsCount > 0) {
             showToast(`Imported ${newAssignmentsCount} new assignments! 🎉`, "success");
         } else {
-            showToast("You're all caught up! No new assignments.", "success");
+            showToast("No new assignments with valid dates found.", "success");
         }
 
     } catch (error) {
         console.error("Classroom Sync Error:", error);
-        // THIS WILL SHOW THE REAL ERROR
         showToast(error.message || "Failed to sync Classroom.", "error");
     }
 });
@@ -695,7 +701,6 @@ themeToggle.addEventListener("click", () => {
 // START APP
 // ==============================
 
-// Migrate older saved tasks that have no reminders field
 assignments.forEach(task => {
     if (!Array.isArray(task.reminders)) {
         task.reminders = DEFAULT_REMINDERS.map(reminder => ({ ...reminder }));
@@ -713,5 +718,4 @@ applyTheme(savedTheme);
 
 renderAssignments();
 
-// Update countdown every second (in place — no full re-render)
 setInterval(updateCountdowns, 1000);
