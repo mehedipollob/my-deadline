@@ -6,17 +6,8 @@ import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 // MY DEADLINE — JAVASCRIPT
 // ==============================
 
-const WEB_CLIENT_ID = '912911574847-aefj2rdg0ijld0ld1nph8ik6q8pcqail.apps.googleusercontent.com';
-
-// Initialize Google Auth
-GoogleAuth.initialize({
-    clientId: WEB_CLIENT_ID,
-    scopes: [
-        'https://www.googleapis.com/auth/classroom.courses.readonly',
-        'https://www.googleapis.com/auth/classroom.student-submissions.me.readonly'
-    ],
-    grantOfflineAccess: true,
-});
+// REMOVE the GoogleAuth.initialize() block from here. 
+// It is now handled by capacitor.config.json
 
 const STORAGE_KEY = "myDeadlineAssignments";
 
