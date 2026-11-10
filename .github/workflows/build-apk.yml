@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build:
-    name: Build Android APK
+    name: Build Signed Android APK
     runs-on: ubuntu-latest
 
     steps:
@@ -36,19 +36,6 @@ jobs:
           accept-android-sdk-licenses: true
           log-accepted-android-sdk-licenses: false
 
-      - name: Generate debug keystore
-        run: |
-          mkdir -p "$HOME/.android"
-          keytool -genkeypair -v \
-            -keystore "$HOME/.android/debug.keystore" \
-            -storepass android \
-            -alias androiddebugkey \
-            -keypass android \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -dname "CN=Android Debug,O=Android,C=US"
-
       - name: Install dependencies
         run: npm install
 
@@ -61,78 +48,73 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Configure APK signing
+      - name: Prepare permanent signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          cat >> android/gradle.properties <<EOF
-          MYAPP_STORE_FILE=$HOME/.android/debug.keystore
-          MYAPP_STORE_PASSWORD=android
-          MYAPP_KEY_ALIAS=androiddebugkey
-          MYAPP_KEY_PASSWORD=android
-          EOF
+          mkdir -p "$RUNNER_TEMP/signing"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/signing/my-deadline-release.jks"
+          test -s "$RUNNER_TEMP/signing/my-deadline-release.jks"
 
+      - name: Configure release signing
+        run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
           path = Path("android/app/build.gradle")
           content = path.read_text()
 
-          signing_config = """
+          signing = """
               signingConfigs {
-                  debug {
-                      storeFile file(project.property("MYAPP_STORE_FILE"))
-                      storePassword project.property("MYAPP_STORE_PASSWORD")
-                      keyAlias project.property("MYAPP_KEY_ALIAS")
-                      keyPassword project.property("MYAPP_KEY_PASSWORD")
+                  release {
+                      storeFile file(System.getenv("ANDROID_KEYSTORE_PATH"))
+                      storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                      keyPassword System.getenv("ANDROID_KEY_PASSWORD")
                   }
               }
           """
 
-          if "MYAPP_STORE_FILE" not in content:
-              content = content.replace(
-                  "android {",
-                  "android {\n" + signing_config,
-                  1
-              )
+          if "signingConfigs {" not in content:
+              content = content.replace("android {", "android {\n" + signing, 1)
 
-          if "signingConfig signingConfigs.debug" not in content:
-              content = content.replace(
-                  "buildTypes {",
-                  """buildTypes {
-                      debug {
-                          signingConfig signingConfigs.debug
-                      }
-                  """,
-                  1
-              )
+          pattern = r"(buildTypes\\s*\\{\\s*release\\s*\\{)"
+          replacement = (
+              r"\\1\n"
+              "            signingConfig signingConfigs.release\n"
+              "            minifyEnabled false"
+          )
+
+          content, count = re.subn(pattern, replacement, content, count=1)
+
+          if count != 1:
+              raise SystemExit("Could not find the release build type in build.gradle")
 
           path.write_text(content)
           PY
 
-      - name: Build debug APK
+      - name: Build signed release APK
         working-directory: android
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/signing/my-deadline-release.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease
 
-      - name: Get Android SHA-1
-        run: |
-          keytool -list -v \
-            -keystore "$HOME/.android/debug.keystore" \
-            -alias androiddebugkey \
-            -storepass android \
-            -keypass android
-
-      - name: Verify APK signing certificate
+      - name: Verify APK signature
         run: |
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)
-          "$APKSIGNER" verify --print-certs \
-            android/app/build/outputs/apk/debug/app-debug.apk
-
+          "$APKSIGNER" verify --verbose --print-certs \
+            android/app/build/outputs/apk/release/app-release.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: My-Deadline-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: My-Deadline-Release-APK
+          path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 30
