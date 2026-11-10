@@ -73,12 +73,16 @@ body.no-scroll {
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--border);
+    
+    /* NEW: Adds padding to the top to avoid the phone's notch/status bar */
+    padding-top: env(safe-area-inset-top, 0px);
 }
 
 .header-content {
     max-width: 720px;
     margin: 0 auto;
-    padding: 14px 18px;
+    /* INCREASED: Padding changed from 14px to 20px for more breathing room */
+    padding: 20px 18px;
     display: flex;
     align-items: center;
     gap: 14px;
@@ -143,7 +147,8 @@ body.no-scroll {
 .container {
     max-width: 720px;
     margin: 0 auto;
-    padding: 22px 18px 40px;
+    /* INCREASED: Slightly more padding at the top so it doesn't feel cramped */
+    padding: 26px 18px 40px;
 }
 
 /* =========================
@@ -309,11 +314,12 @@ body.dark .priority.Low    { color: #86efac; }
 .card-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px 16px;
-    margin-top: 8px;
+    gap: 8px 16px;
+    margin-top: 10px;
     font-size: 12.5px;
     color: var(--muted);
     font-weight: 500;
+    align-items: center;
 }
 
 .card-meta span {
@@ -323,15 +329,19 @@ body.dark .priority.Low    { color: #86efac; }
 }
 
 .card-meta span.reminders {
+    background: var(--primary-soft);
     color: var(--primary);
+    padding: 3px 8px;
+    border-radius: 6px;
     font-weight: 600;
+    font-size: 11.5px;
 }
 
 .countdown {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
-    margin-top: 15px;
+    margin-top: 16px;
 }
 
 .time-box {
@@ -505,7 +515,8 @@ body.dark .priority.Low    { color: #86efac; }
     width: min(420px, 90vw);
     display: flex;
     flex-direction: column;
-    padding: 22px 22px 30px;
+    /* Added safe area padding to the drawer as well */
+    padding: calc(22px + env(safe-area-inset-top, 0px)) 22px 30px;
     background: var(--surface);
     border-right: 1px solid var(--border);
     box-shadow: var(--shadow-lg);
@@ -731,7 +742,7 @@ body.dark .priority.Low    { color: #86efac; }
    ========================= */
 
 footer {
-    padding: 26px 20px calc(26px + env(safe-area-inset-bottom));
+    padding: 26px 20px calc(26px + env(safe-area-inset-bottom, 0px));
     text-align: center;
     font-size: 12px;
     color: var(--muted);
@@ -743,11 +754,12 @@ footer {
 
 @media (max-width: 400px) {
     .container {
-        padding: 18px 13px 34px;
+        padding: 20px 13px 34px;
     }
 
     .header-content {
-        padding: 12px 13px;
+        /* INCREASED: Adjusted mobile padding to keep it comfortable */
+        padding: 16px 13px;
         gap: 10px;
     }
 
@@ -784,7 +796,7 @@ footer {
     }
 
     .drawer {
-        padding: 18px 16px 26px;
+        padding: calc(18px + env(safe-area-inset-top, 0px)) 16px 26px;
     }
 
     .chip span {
