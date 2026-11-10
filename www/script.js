@@ -225,15 +225,18 @@ async function scheduleReminders(task) {
 // ==============================
 // GOOGLE CLASSROOM SYNC
 // ==============================
-
 syncClassroomBtn.addEventListener('click', async () => {
     try {
         showToast("Connecting to Google...", "success");
         
         // 1. Sign in and get the access token
         const user = await GoogleAuth.signIn();
-        const accessToken = user.authentication.accessToken;
         
+        if (!user || !user.authentication || !user.authentication.accessToken) {
+            throw new Error("No access token received from Google.");
+        }
+
+        const accessToken = user.authentication.accessToken;
         showToast("Fetching your courses...", "success");
 
         // 2. Get the list of courses
@@ -242,13 +245,16 @@ syncClassroomBtn.addEventListener('click', async () => {
         });
         const coursesData = await coursesRes.json();
         
+        if (coursesData.error) {
+            throw new Error(`API Error: ${coursesData.error.message}`);
+        }
+
         if (!coursesData.courses) {
-            showToast("No courses found.", "error");
+            showToast("No courses found on this account.", "error");
             return;
         }
 
         let newAssignmentsCount = 0;
-        const permission = await requestNotificationPermission();
 
         // 3. Loop through each course to get assignments
         for (const course of coursesData.courses) {
@@ -261,26 +267,22 @@ syncClassroomBtn.addEventListener('click', async () => {
                 for (const work of workData.courseWork) {
                     if (!work.dueDate) continue;
 
-                    // Convert Google's date format to standard ISO string
                     const d = work.dueDate;
                     const t = work.dueTime || { hours: 23, minutes: 59 }; 
                     const deadlineDate = new Date(d.year, d.month - 1, d.day, t.hours, t.minutes);
                     const deadlineISO = deadlineDate.toISOString();
 
-                    // Skip past assignments
                     if (deadlineDate.getTime() <= Date.now()) continue;
 
-                    // Check if we already imported this exact assignment
                     const exists = assignments.find(a => a.name === work.title && a.subject === course.name);
                     if (exists) continue;
 
-                    // 4. Create the new task
                     const newTask = {
                         id: generateId(),
                         name: work.title,
                         subject: course.name,
                         deadline: deadlineISO,
-                        priority: "Medium", // Default priority
+                        priority: "Medium",
                         completed: false,
                         reminders: DEFAULT_REMINDERS,
                         notificationIds: []
@@ -293,7 +295,6 @@ syncClassroomBtn.addEventListener('click', async () => {
             }
         }
 
-        // 5. Save and update UI
         saveAssignments();
         renderAssignments();
 
@@ -305,7 +306,8 @@ syncClassroomBtn.addEventListener('click', async () => {
 
     } catch (error) {
         console.error("Classroom Sync Error:", error);
-        showToast("Failed to sync Classroom.", "error");
+        // THIS WILL SHOW THE REAL ERROR
+        showToast(error.message || "Failed to sync Classroom.", "error");
     }
 });
 
