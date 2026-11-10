@@ -36,6 +36,19 @@ jobs:
           accept-android-sdk-licenses: true
           log-accepted-android-sdk-licenses: false
 
+      - name: Generate debug keystore
+        run: |
+          mkdir -p "$HOME/.android"
+          keytool -genkeypair -v \
+            -keystore "$HOME/.android/debug.keystore" \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
       - name: Install dependencies
         run: npm install
 
@@ -47,6 +60,40 @@ jobs:
 
       - name: Sync Capacitor
         run: npx cap sync android
+
+      - name: Configure APK signing
+        run: |
+          cat >> android/gradle.properties <<EOF
+          MYAPP_STORE_FILE=$HOME/.android/debug.keystore
+          MYAPP_STORE_PASSWORD=android
+          MYAPP_KEY_ALIAS=androiddebugkey
+          MYAPP_KEY_PASSWORD=android
+          EOF
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("android/app/build.gradle")
+          content = path.read_text()
+
+          signing = """
+          android {
+              signingConfigs {
+                  debug {
+                      storeFile file(MYAPP_STORE_FILE)
+                      storePassword MYAPP_STORE_PASSWORD
+                      keyAlias MYAPP_KEY_ALIAS
+                      keyPassword MYAPP_KEY_PASSWORD
+                  }
+              }
+          }
+          """
+
+          if "signingConfigs {" not in content:
+              content = content.replace("android {", signing, 1)
+
+          path.write_text(content)
+          PY
 
       - name: Build debug APK
         working-directory: android
@@ -62,6 +109,10 @@ jobs:
             -storepass android \
             -keypass android
 
+      - name: Verify APK signing certificate
+        run: |
+          apksigner verify --print-certs \
+            android/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
