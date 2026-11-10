@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#635bff">
-    <meta name="description" content="A focused space to organize assignments and never miss a deadline.">
     <title>My Deadline</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -12,14 +11,13 @@
     <div class="app-shell">
         <div class="overlay" id="overlay"></div>
 
-        <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Add assignment">
+        <aside class="drawer" id="drawer" aria-hidden="true">
             <div class="drawer-header">
                 <div>
                     <span class="eyebrow">STAY ON TRACK</span>
                     <h2>New assignment</h2>
-                    <p class="drawer-sub">Add the details and we’ll keep an eye on the deadline.</p>
                 </div>
-                <button class="icon-button" id="drawerClose" aria-label="Close form">✕</button>
+                <button class="icon-button" id="drawerClose">✕</button>
             </div>
 
             <form id="assignmentForm" autocomplete="off">
@@ -36,7 +34,6 @@
                 <div class="field">
                     <label for="deadline">Submission deadline</label>
                     <p class="field-hint">Leave blank if there is no due date.</p>
-                    <!-- REMOVED 'required' HERE -->
                     <input type="datetime-local" id="deadline">
                 </div>
 
@@ -52,16 +49,11 @@
                 <div class="field">
                     <div>
                         <label>Reminders</label>
-                        <p class="field-hint">Choose when you want to be reminded.</p>
                     </div>
-
                     <div class="reminder-chips" id="reminderChips">
-                        <label class="chip"><input type="checkbox" value="10080"><span>1 week</span></label>
                         <label class="chip"><input type="checkbox" value="1440" checked><span>1 day</span></label>
                         <label class="chip"><input type="checkbox" value="360" checked><span>6 hours</span></label>
                         <label class="chip"><input type="checkbox" value="60" checked><span>1 hour</span></label>
-                        <label class="chip"><input type="checkbox" value="30"><span>30 min</span></label>
-                        <label class="chip"><input type="checkbox" value="10"><span>10 min</span></label>
                     </div>
                 </div>
 
@@ -71,95 +63,41 @@
 
         <header class="header">
             <div class="header-content">
-                <button class="icon-button menu-button" id="menuToggle" aria-label="Add assignment" aria-controls="drawer" aria-expanded="false">＋</button>
-
-                <div class="brand">
-                    <div class="brand-mark">D</div>
-                    <div class="header-title">
-                        <h1>My Deadline</h1>
-                        <p>Your study, in control.</p>
-                    </div>
+                <button class="icon-button" id="menuToggle" type="button">＋</button>
+                <div class="header-title">
+                    <h1>My Deadline</h1>
                 </div>
-
-                <button class="icon-button theme-button" id="themeToggle" aria-label="Toggle theme">☾</button>
+                <button class="icon-button" id="themeToggle" type="button">☾</button>
             </div>
         </header>
 
         <main class="container">
-            <section class="welcome-panel">
-                <div class="welcome-copy">
-                    <span class="eyebrow">YOUR ACADEMIC SPACE</span>
-                    <h2>Make time for<br><em>what matters.</em></h2>
-                    <p>Keep every assignment moving forward, one deadline at a time.</p>
-                    
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
-                        <button class="primary-cta" type="button" onclick="document.getElementById('menuToggle').click()">＋ Add assignment</button>
-                        <button class="primary-cta" type="button" id="syncClassroomBtn" style="background: var(--surface); color: var(--primary); border: 1.5px solid var(--primary);">
-                            🎓 Sync Classroom
-                        </button>
-                    </div>
-                </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button type="button" class="primary-btn" onclick="document.getElementById('menuToggle').click()" style="flex:1;">＋ Add Manually</button>
+                <button type="button" id="syncClassroomBtn" class="primary-btn" style="flex:1; background: var(--surface); color: var(--primary); border: 1.5px solid var(--primary);">🎓 Sync Classroom</button>
+            </div>
 
-                <div class="welcome-art" aria-hidden="true">
-                    <div class="art-orbit orbit-one"></div>
-                    <div class="art-orbit orbit-two"></div>
-                    <div class="art-card">
-                        <span>✓</span>
-                        <b>One step<br>at a time</b>
-                        <small>FOCUS MODE</small>
-                    </div>
-                    <div class="art-dot dot-one"></div>
-                    <div class="art-dot dot-two"></div>
+            <section class="stats">
+                <div class="stat">
+                    <span class="stat-label">Active</span>
+                    <strong id="activeCount">0</strong>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Completed</span>
+                    <strong id="completedCount">0</strong>
                 </div>
             </section>
 
-            <section class="stats-section" aria-label="Assignment overview">
+            <section>
                 <div class="section-heading">
-                    <div>
-                        <span class="eyebrow">AT A GLANCE</span>
-                        <h2>Your overview</h2>
-                    </div>
-                    <span class="live-label"><i></i> LIVE</span>
+                    <h2>My assignments</h2>
+                    <span id="totalCount">0 tasks</span>
                 </div>
-
-                <div class="stats">
-                    <div class="stat stat-active">
-                        <span class="stat-icon">◷</span>
-                        <span class="stat-label">Active</span>
-                        <strong id="activeCount">0</strong>
-                        <small>In progress</small>
-                    </div>
-
-                    <div class="stat stat-done">
-                        <span class="stat-icon">✓</span>
-                        <span class="stat-label">Completed</span>
-                        <strong id="completedCount">0</strong>
-                        <small>Well done</small>
-                    </div>
-                </div>
-            </section>
-
-            <section class="assignment-section">
-                <div class="section-heading assignment-heading">
-                    <div>
-                        <span class="eyebrow">KEEP MOVING</span>
-                        <h2>My assignments</h2>
-                    </div>
-                    <span class="count-pill" id="totalCount">0 tasks</span>
-                </div>
-
-                <!-- Toolbar removed for simplicity, add back if needed -->
                 <div id="assignmentList"></div>
             </section>
         </main>
 
-        <footer>
-            <span class="footer-mark">D</span>
-            <p>Made for your academic success.</p>
-            <small>MY DEADLINE · STAY FOCUSED</small>
-        </footer>
-
-        <div id="toastHost" class="toast-host" aria-live="polite"></div>
+        <div id="toastHost" class="toast-host"></div>
     </div>
 
     <script type="module" src="./script.js"></script>
