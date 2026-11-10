@@ -1529,3 +1529,309 @@ footer small {
         transition-duration: 0.001ms !important;
     }
 }
+
+
+
+/* ==========================================================================
+   POLLOB POLISH LAYER — refined typography, depth, cards and motion
+   Appended overrides intentionally preserve the existing component system.
+   ========================================================================== */
+
+:root {
+    --font-display: "Plus Jakarta Sans", "Inter", "Avenir Next", system-ui, sans-serif;
+    --font-body: "Inter", "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --radius-lg: 26px;
+    --radius: 18px;
+    --radius-sm: 13px;
+    --radius-xs: 10px;
+}
+
+body {
+    background:
+        radial-gradient(ellipse at 12% 0%, rgba(99, 102, 241, 0.075), transparent 34rem),
+        radial-gradient(ellipse at 95% 32%, rgba(124, 58, 237, 0.045), transparent 28rem),
+        var(--bg);
+}
+
+body.dark {
+    background:
+        radial-gradient(ellipse at 12% 0%, rgba(99, 102, 241, 0.12), transparent 34rem),
+        radial-gradient(ellipse at 95% 32%, rgba(124, 58, 237, 0.08), transparent 28rem),
+        var(--bg);
+}
+
+.brand-credit {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.brand-mark,
+.footer-mark {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+}
+
+.brand-mark::after,
+.footer-mark::after {
+    content: "";
+    position: absolute;
+    inset: -60% -30%;
+    z-index: -1;
+    background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.34) 50%, transparent 65%);
+    transform: translateX(-100%);
+    animation: brandShine 5.5s ease-in-out infinite;
+}
+
+@keyframes brandShine {
+    0%, 68%, 100% { transform: translateX(-100%); }
+    84% { transform: translateX(100%); }
+}
+
+.header {
+    border-bottom-color: color-mix(in srgb, var(--border) 78%, transparent);
+}
+
+.header-content {
+    min-height: 72px;
+}
+
+.menu-button,
+.primary-cta:not(.is-secondary),
+.add-button {
+    background: linear-gradient(135deg, var(--primary), #7657ed);
+    box-shadow: 0 9px 22px -11px var(--primary-glow), inset 0 1px 0 rgba(255,255,255,.22);
+}
+
+.menu-button:hover,
+.primary-cta:not(.is-secondary):hover,
+.add-button:hover {
+    filter: brightness(1.06);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px -13px var(--primary-glow), inset 0 1px 0 rgba(255,255,255,.24);
+}
+
+.welcome-panel {
+    isolation: isolate;
+    border-color: color-mix(in srgb, var(--border) 78%, var(--primary) 22%);
+    box-shadow: 0 18px 50px -32px rgba(39, 42, 100, .32), var(--shadow-sm);
+    animation: panelEnter .75s var(--ease) both;
+}
+
+.welcome-panel::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    width: 440px;
+    height: 440px;
+    top: -250px;
+    right: -130px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(99, 102, 241, .12), rgba(124, 58, 237, .035) 48%, transparent 70%);
+    pointer-events: none;
+}
+
+.welcome-copy h2 {
+    letter-spacing: -.055em;
+}
+
+.welcome-copy h2 em {
+    color: var(--primary);
+}
+
+@keyframes panelEnter {
+    from { opacity: 0; transform: translateY(18px) scale(.99); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.art-card {
+    animation: artFloat 5s ease-in-out infinite;
+    box-shadow: 0 20px 45px -25px rgba(42, 44, 100, .35), var(--shadow);
+}
+
+@keyframes artFloat {
+    0%, 100% { margin-top: 0; }
+    50% { margin-top: -8px; }
+}
+
+.stat {
+    position: relative;
+    overflow: hidden;
+    transition: transform .25s var(--ease), border-color .25s ease, box-shadow .25s ease;
+}
+
+.stat::after {
+    content: "";
+    position: absolute;
+    width: 110px;
+    height: 110px;
+    right: -52px;
+    bottom: -62px;
+    border-radius: 50%;
+    background: var(--primary-soft);
+    opacity: .55;
+    transition: transform .35s var(--ease);
+    pointer-events: none;
+}
+
+.stat:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+    box-shadow: 0 16px 30px -22px var(--primary-glow), var(--shadow);
+}
+
+.stat:hover::after {
+    transform: scale(1.45);
+}
+
+.stat > * {
+    position: relative;
+    z-index: 1;
+}
+
+.stat-icon {
+    transition: transform .25s var(--ease);
+}
+
+.stat:hover .stat-icon {
+    transform: rotate(-7deg) scale(1.06);
+}
+
+.assignment-card {
+    border-color: color-mix(in srgb, var(--border) 88%, var(--primary) 12%);
+    box-shadow: 0 3px 12px -10px rgba(30, 35, 90, .22);
+    transition:
+        transform .28s var(--ease),
+        box-shadow .28s ease,
+        border-color .28s ease,
+        opacity .3s ease;
+}
+
+.assignment-card:hover {
+    transform: translateY(-5px);
+    border-color: color-mix(in srgb, var(--primary) 38%, var(--border));
+    box-shadow: 0 20px 34px -24px rgba(61, 63, 230, .32), var(--shadow);
+}
+
+.assignment-card::before {
+    transition: width .25s var(--ease), inset .25s var(--ease);
+}
+
+.assignment-card:hover::before {
+    width: 5px;
+    inset-block: 14px;
+}
+
+.priority {
+    letter-spacing: .01em;
+}
+
+.time-box {
+    transition: background .2s ease, border-color .2s ease, transform .2s var(--ease);
+}
+
+.assignment-card:hover .time-box {
+    border-color: color-mix(in srgb, var(--primary) 18%, var(--border));
+}
+
+.btn {
+    position: relative;
+    overflow: hidden;
+    transition:
+        transform .18s var(--ease),
+        background .2s ease,
+        border-color .2s ease,
+        box-shadow .2s ease,
+        filter .2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    filter: saturate(1.12);
+    box-shadow: 0 7px 15px -11px currentColor;
+}
+
+.btn:active {
+    transform: translateY(0) scale(.97);
+}
+
+.btn-complete:hover { background: color-mix(in srgb, var(--success-soft) 70%, var(--success) 12%); }
+.btn-edit:hover { background: color-mix(in srgb, var(--primary-soft) 72%, var(--primary) 10%); }
+.btn-delete:hover { background: color-mix(in srgb, var(--danger-soft) 72%, var(--danger) 10%); }
+
+.search-box input,
+.toolbar-selects select,
+.field input[type="text"],
+.field input[type="datetime-local"],
+.field select {
+    transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease, transform .2s var(--ease);
+}
+
+.search-box input:focus,
+.toolbar-selects select:focus,
+.field input:focus,
+.field select:focus {
+    transform: translateY(-1px);
+}
+
+.empty-state {
+    animation: rise .55s var(--ease) both;
+}
+
+.drawer {
+    border-top-left-radius: 22px;
+    border-bottom-left-radius: 22px;
+}
+
+.add-button {
+    transition: transform .2s var(--ease), filter .2s ease, box-shadow .2s ease;
+}
+
+.add-button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+}
+
+footer {
+    position: relative;
+}
+
+footer p {
+    font-weight: 600;
+    color: var(--text-2);
+}
+
+footer small {
+    letter-spacing: .02em;
+}
+
+@media (max-width: 640px) {
+    .welcome-panel {
+        box-shadow: 0 14px 34px -26px rgba(39, 42, 100, .3), var(--shadow-sm);
+    }
+
+    .assignment-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .drawer {
+        border-radius: 20px 0 0 20px;
+    }
+}
+
+@media (hover: none) {
+    .stat:hover,
+    .assignment-card:hover,
+    .btn:hover {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .brand-mark::after,
+    .footer-mark::after,
+    .art-card {
+        animation: none !important;
+    }
+}
+
