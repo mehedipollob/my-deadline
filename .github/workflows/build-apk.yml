@@ -36,7 +36,7 @@ jobs:
           log-accepted-android-sdk-licenses: false
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Build web application
         run: npm run build
@@ -49,35 +49,30 @@ jobs:
 
       - name: Inject Google Auth Native Code
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
+          # 1. Update strings.xml safely
+          STRINGS_FILE="android/app/src/main/res/values/strings.xml"
+          sed -i '/server_client_id/d' $STRINGS_FILE
+          sed -i 's|</resources>|    <string name="server_client_id">912911574847-aefj2rdg0ijld0ld1nph8ik6q8pcqail.apps.googleusercontent.com</string>\n</resources>|' $STRINGS_FILE
           
-          # 1. Update strings.xml
-          strings_path = Path("android/app/src/main/res/values/strings.xml")
-          strings_content = strings_path.read_text()
-          if "server_client_id" not in strings_content:
-              strings_content = strings_content.replace(
-                  "</resources>",
-                  "    <string name=\"server_client_id\">912911574847-aefj2rdg0ijld0ld1nph8ik6q8pcqail.apps.googleusercontent.com</string>\n</resources>"
-              )
-              strings_path.write_text(strings_content)
+          # 2. Completely overwrite MainActivity.java to guarantee correct formatting
+          MAIN_ACTIVITY="android/app/src/main/java/com/mydeadline/app/MainActivity.java"
+          cat > $MAIN_ACTIVITY << 'EOF'
+          package com.mydeadline.app;
+
+          import com.getcapacitor.BridgeActivity;
+          import android.os.Bundle;
+          import com.codetrixstudio.capacitor.GoogleAuth.GoogleAuth;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  this.registerPlugin(GoogleAuth.class);
+              }
+          }
+          EOF
           
-          # 2. Update MainActivity.java
-          main_activity_path = Path("android/app/src/main/java/com/mydeadline/app/MainActivity.java")
-          main_activity_content = main_activity_path.read_text()
-          if "GoogleAuth" not in main_activity_content:
-              main_activity_content = main_activity_content.replace(
-                  "import com.getcapacitor.BridgeActivity;",
-                  "import com.getcapacitor.BridgeActivity;\nimport android.os.Bundle;\nimport com.codetrixstudio.capacitor.GoogleAuth.GoogleAuth;"
-              )
-              main_activity_content = main_activity_content.replace(
-                  "public class MainActivity extends BridgeActivity {}",
-                  "public class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        this.registerPlugin(GoogleAuth.class);\n    }\n}"
-              )
-              main_activity_path.write_text(main_activity_content)
-          
-          print("Google Auth native configuration injected successfully.")
-          PY
+          echo "Google Auth native configuration injected successfully."
 
       - name: Prepare permanent signing key
         env:
@@ -108,39 +103,20 @@ jobs:
           """
 
           if "signingConfigs {" not in content:
-              content = content.replace(
-                  "android {",
-                  "android {\n" + signing,
-                  1
-              )
+              content = content.replace("android {", "android {\n" + signing, 1)
 
           build = re.search(r'buildTypes\s*\{', content)
-
           if not build:
               raise SystemExit("Could not find buildTypes block")
 
-          release = re.search(
-              r'release\s*\{',
-              content[build.end():]
-          )
-
+          release = re.search(r'release\s*\{', content[build.end():])
           if release:
               pos = build.end() + release.end()
               if "signingConfig signingConfigs.release" not in content:
-                  content = (
-                      content[:pos]
-                      + "\n            signingConfig signingConfigs.release"
-                      + content[pos:]
-                  )
+                  content = content[:pos] + "\n            signingConfig signingConfigs.release" + content[pos:]
           else:
               pos = build.end()
-              content = (
-                  content[:pos]
-                  + "\n        release {\n"
-                    "            signingConfig signingConfigs.release\n"
-                    "        }\n"
-                  + content[pos:]
-              )
+              content = content[:pos] + "\n        release {\n            signingConfig signingConfigs.release\n        }\n" + content[pos:]
 
           path.write_text(content)
           print("Release signing configured successfully.")
@@ -155,6 +131,7 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           chmod +x gradlew
+          ./gradlew clean
           ./gradlew assembleRelease
 
       - name: Verify APK signature
