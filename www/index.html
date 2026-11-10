@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#3d3fe6">
+    <meta name="theme-color" content="#060714">
     <meta name="description" content="A focused space to organize assignments and never miss a deadline.">
     <title>My Deadline | Pollob</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style-pollob.css">
 </head>
 <body>
     <!-- Lucide icon sprite (inline, no external dependency) -->
@@ -22,11 +22,14 @@
         <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
         <symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
         <symbol id="i-cap" viewBox="0 0 24 24"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></symbol>
+        <symbol id="i-home" viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+        <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></symbol>
+        <symbol id="i-list" viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></symbol>
     </svg>
 
     <a class="skip-link" href="#assignmentSection">Skip to assignments</a>
 
-    <div class="app-shell">
+    <div class="app-shell" id="top">
         <div class="overlay" id="overlay"></div>
 
         <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Add assignment">
@@ -94,6 +97,7 @@
                     </div>
                 </div>
 
+                <!-- Kept for script.js; the bottom-nav "+" button triggers it -->
                 <button class="icon-button menu-button" id="menuToggle" aria-label="Add assignment" aria-controls="drawer" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg><span class="menu-label">Add assignment</span></button>
 
                 <button class="icon-button theme-button" id="themeToggle" aria-label="Toggle theme">☾</button>
@@ -102,10 +106,25 @@
 
         <main class="container">
             <section class="welcome-panel">
+                <div class="welcome-art" aria-hidden="true">
+                    <div class="art-orbit orbit-one"></div>
+                    <div class="art-orbit orbit-two"></div>
+                    <div class="art-dot dot-one"></div>
+                    <div class="art-dot dot-two"></div>
+                </div>
+
                 <div class="welcome-copy">
-                    <span class="eyebrow">Pollob’s academic space</span>
-                    <h2>Make time for<br>what matters.</h2>
-                    <p>Keep every assignment moving forward, one deadline at a time.</p>
+                    <div class="welcome-top">
+                        <h2><span class="hello" id="greetText">Welcome back,</span><span class="name">Pollob</span></h2>
+                        <div class="art-card" role="img" aria-label="Completion progress">
+                            <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
+                                <circle class="track" cx="50" cy="50" r="44"/>
+                                <circle class="bar" id="ringBar" cx="50" cy="50" r="44"/>
+                            </svg>
+                            <div class="ring-label"><span id="ringPct">0%</span><small>done</small></div>
+                        </div>
+                    </div>
+                    <p>Make time for what matters, one deadline at a time.</p>
 
                     <!-- GOOGLE CLASSROOM SYNC BUTTON -->
                     <div class="hero-actions">
@@ -113,21 +132,9 @@
                         <button class="primary-cta is-secondary" type="button" id="syncClassroomBtn"><svg class="icon" aria-hidden="true"><use href="#i-cap"/></svg>Sync Classroom</button>
                     </div>
                 </div>
-
-                <div class="welcome-art" aria-hidden="true">
-                    <div class="art-orbit orbit-one"></div>
-                    <div class="art-orbit orbit-two"></div>
-                    <div class="art-card">
-                        <span><svg class="icon"><use href="#i-check"/></svg></span>
-                        <b>One step<br>at a time</b>
-                        <small>Focus mode</small>
-                    </div>
-                    <div class="art-dot dot-one"></div>
-                    <div class="art-dot dot-two"></div>
-                </div>
             </section>
 
-            <section class="stats-section" aria-label="Assignment overview">
+            <section class="stats-section reveal" id="statsSection" aria-label="Assignment overview">
                 <div class="section-heading">
                     <div>
                         <span class="eyebrow">At a glance</span>
@@ -150,10 +157,15 @@
                         <strong id="completedCount">0</strong>
                         <small>Well done</small>
                     </div>
+
+                    <div class="progress-card">
+                        <div class="progress-row"><span>Overall progress</span><span id="progressText">0%</span></div>
+                        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+                    </div>
                 </div>
             </section>
 
-            <section class="assignment-section" id="assignmentSection">
+            <section class="assignment-section reveal" id="assignmentSection">
                 <div class="section-heading assignment-heading">
                     <div>
                         <span class="eyebrow">Keep moving</span>
@@ -184,6 +196,14 @@
                     </div>
                 </div>
 
+                <!-- One-tap shortcuts that drive the filter select above -->
+                <div class="quick-filters" id="quickFilters" role="group" aria-label="Quick filters">
+                    <button type="button" class="qf" data-f="all" aria-pressed="true">All</button>
+                    <button type="button" class="qf" data-f="active" aria-pressed="false">Upcoming</button>
+                    <button type="button" class="qf is-danger" data-f="overdue" aria-pressed="false">Overdue</button>
+                    <button type="button" class="qf" data-f="completed" aria-pressed="false">Completed</button>
+                </div>
+
                 <div id="assignmentList"></div>
             </section>
         </main>
@@ -194,9 +214,92 @@
             <small>My Deadline · Designed by Pollob</small>
         </footer>
 
+        <nav class="bottom-nav" aria-label="Main">
+            <a class="nav-item is-active" href="#top" data-target="top"><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg>Home</a>
+            <a class="nav-item" href="#statsSection" data-target="statsSection"><svg class="icon" aria-hidden="true"><use href="#i-chart"/></svg>Stats</a>
+            <button class="nav-fab" type="button" id="navAdd" aria-label="Add assignment"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button>
+            <a class="nav-item" href="#assignmentSection" data-target="assignmentSection"><svg class="icon" aria-hidden="true"><use href="#i-list"/></svg>Tasks</a>
+            <button class="nav-item" type="button" id="navSync"><svg class="icon" aria-hidden="true"><use href="#i-cap"/></svg>Classroom</button>
+        </nav>
+
         <div id="toastHost" class="toast-host" aria-live="polite"></div>
     </div>
+
+    <!-- UI-only helpers. They read/drive existing elements and never touch script.js logic. -->
+    <script>
+    (function () {
+        var $ = function (id) { return document.getElementById(id); };
+
+        // Start in the midnight theme unless a saved theme preference exists (then script.js decides)
+        try {
+            var hasPref = Object.keys(localStorage).some(function (k) { return /theme/i.test(k); });
+            if (!hasPref) document.body.classList.add('dark');
+        } catch (e) { document.body.classList.add('dark'); }
+
+        // Time-of-day greeting
+        var h = new Date().getHours();
+        $('greetText').textContent = (h < 5 ? 'Late night,' : h < 12 ? 'Good morning,' : h < 18 ? 'Good afternoon,' : 'Good evening,');
+
+        // Progress ring + bar, driven by the live counts that script.js already writes
+        var C = 276.46;
+        function updateProgress() {
+            var a = parseInt($('activeCount').textContent, 10) || 0;
+            var d = parseInt($('completedCount').textContent, 10) || 0;
+            var pct = (a + d) ? Math.round(d / (a + d) * 100) : 0;
+            $('ringBar').style.strokeDashoffset = C - (C * pct / 100);
+            $('ringPct').textContent = pct + '%';
+            $('progressText').textContent = pct + '%';
+            $('progressFill').style.width = pct + '%';
+        }
+        var mo = new MutationObserver(updateProgress);
+        ['activeCount', 'completedCount'].forEach(function (id) {
+            mo.observe($(id), { childList: true, characterData: true, subtree: true });
+        });
+        updateProgress();
+
+        // Bottom navigation actions
+        $('navAdd').addEventListener('click', function () { $('menuToggle').click(); });
+        $('navSync').addEventListener('click', function () { $('syncClassroomBtn').click(); });
+
+        // Quick filters drive the existing filter select
+        var filter = $('assignmentFilter');
+        var chips = document.querySelectorAll('.qf');
+        function markChip() {
+            chips.forEach(function (c) { c.setAttribute('aria-pressed', String(c.dataset.f === filter.value)); });
+        }
+        chips.forEach(function (c) {
+            c.addEventListener('click', function () {
+                filter.value = c.dataset.f;
+                filter.dispatchEvent(new Event('input', { bubbles: true }));
+                filter.dispatchEvent(new Event('change', { bubbles: true }));
+                markChip();
+            });
+        });
+        filter.addEventListener('change', markChip);
+
+        // Scroll reveal + active nav item
+        var items = document.querySelectorAll('.nav-item[data-target]');
+        function setActive(id) {
+            items.forEach(function (n) { n.classList.toggle('is-active', n.dataset.target === id); });
+        }
+        if ('IntersectionObserver' in window) {
+            var rev = new IntersectionObserver(function (es) {
+                es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); rev.unobserve(e.target); } });
+            }, { threshold: .08 });
+            document.querySelectorAll('.reveal').forEach(function (el) { rev.observe(el); });
+
+            var spy = new IntersectionObserver(function (es) {
+                es.forEach(function (e) { if (e.isIntersecting) setActive(e.target.id); });
+            }, { rootMargin: '-35% 0px -55% 0px' });
+            ['statsSection', 'assignmentSection'].forEach(function (id) { spy.observe($(id)); });
+            window.addEventListener('scroll', function () { if (window.scrollY < 120) setActive('top'); }, { passive: true });
+        } else {
+            document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
+        }
+    })();
+    </script>
 
     <script type="module" src="./script.js"></script>
 </body>
 </html>
+
