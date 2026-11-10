@@ -1,4 +1,3 @@
-
 name: Build My Deadline APK
 
 on:
@@ -48,6 +47,38 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
+      - name: Inject Google Auth Native Code
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          
+          # 1. Update strings.xml
+          strings_path = Path("android/app/src/main/res/values/strings.xml")
+          strings_content = strings_path.read_text()
+          if "server_client_id" not in strings_content:
+              strings_content = strings_content.replace(
+                  "</resources>",
+                  "    <string name=\"server_client_id\">912911574847-aefj2rdg0ijld0ld1nph8ik6q8pcqail.apps.googleusercontent.com</string>\n</resources>"
+              )
+              strings_path.write_text(strings_content)
+          
+          # 2. Update MainActivity.java
+          main_activity_path = Path("android/app/src/main/java/com/mydeadline/app/MainActivity.java")
+          main_activity_content = main_activity_path.read_text()
+          if "GoogleAuth" not in main_activity_content:
+              main_activity_content = main_activity_content.replace(
+                  "import com.getcapacitor.BridgeActivity;",
+                  "import com.getcapacitor.BridgeActivity;\nimport android.os.Bundle;\nimport com.codetrixstudio.capacitor.GoogleAuth.GoogleAuth;"
+              )
+              main_activity_content = main_activity_content.replace(
+                  "public class MainActivity extends BridgeActivity {}",
+                  "public class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        this.registerPlugin(GoogleAuth.class);\n    }\n}"
+              )
+              main_activity_path.write_text(main_activity_content)
+          
+          print("Google Auth native configuration injected successfully.")
+          PY
+
       - name: Prepare permanent signing key
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -56,7 +87,6 @@ jobs:
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/signing/my-deadline-release.jks"
           test -s "$RUNNER_TEMP/signing/my-deadline-release.jks"
 
-      
       - name: Configure release signing
         run: |
           python3 - <<'PY'
