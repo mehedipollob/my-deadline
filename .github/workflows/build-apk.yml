@@ -44,9 +44,6 @@ jobs:
       - name: Add Android platform
         run: npx cap add android
 
-      - name: Sync Capacitor
-        run: npx cap sync android
-
       - name: Inject Google Auth Native Code
         run: |
           # 1. Update strings.xml safely
@@ -73,6 +70,33 @@ jobs:
           EOF
           
           echo "Google Auth native configuration injected successfully."
+
+      - name: Sync Capacitor (Forces Plugin Registration)
+        run: npx cap sync android
+
+      - name: Verify Plugin Registration
+        run: |
+          # Manually add the plugin to capacitor.plugins.json if cap sync missed it
+          PLUGINS_JSON="android/app/src/main/assets/capacitor.plugins.json"
+          if [ -f "$PLUGINS_JSON" ]; then
+            if ! grep -q "GoogleAuth" "$PLUGINS_JSON"; then
+              echo "Forcing GoogleAuth plugin registration..."
+              # Use python to safely add the plugin to the JSON array
+              python3 -c "
+          import json
+          with open('$PLUGINS_JSON', 'r') as f:
+              plugins = json.load(f)
+          plugins.append({'pkg': '@codetrix-studio/capacitor-google-auth', 'classpath': 'com.codetrixstudio.capacitor.GoogleAuth.GoogleAuth'})
+          with open('$PLUGINS_JSON', 'w') as f:
+              json.dump(plugins, f, indent=2)
+          "
+            else
+              echo "GoogleAuth already registered."
+            fi
+          else
+            echo "capacitor.plugins.json not found!"
+            exit 1
+          fi
 
       - name: Prepare permanent signing key
         env:
