@@ -72,6 +72,24 @@ function generateId() {
 }
 
 // ==============================
+// FORMAT DATE FOR UI
+// ==============================
+
+function formatDate(isoString) {
+    const d = new Date(isoString);
+    const datePart = d.toLocaleDateString(undefined, { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+    });
+    const timePart = d.toLocaleTimeString(undefined, { 
+        hour: 'numeric', 
+        minute: '2-digit' 
+    });
+    return `${datePart} • ${timePart}`;
+}
+
+// ==============================
 // FORMAT DATE FOR EDITING
 // ==============================
 
@@ -93,7 +111,6 @@ function getSelectedReminders() {
                 .textContent.trim(),
             time: Number(input.value) * 60 * 1000
         }))
-        // Largest offset first = earliest notification first
         .sort((a, b) => b.time - a.time);
 }
 
@@ -142,7 +159,6 @@ async function scheduleReminders(task) {
 
     await cancelReminders(task);
 
-    // Use this task's own reminders (empty array = no notifications)
     const reminders = Array.isArray(task.reminders)
         ? task.reminders
         : DEFAULT_REMINDERS;
@@ -265,9 +281,7 @@ form.addEventListener("submit", async function (event) {
     saveAssignments();
     await scheduleReminders(task);
 
-    // Reset form back to default chip selection
     form.reset();
-
     closeDrawer();
     renderAssignments();
 
@@ -358,7 +372,7 @@ function renderAssignments() {
         subject.textContent = `📚 ${task.subject}`;
 
         const date = document.createElement("span");
-        date.textContent = `⏰ ${new Date(task.deadline).toLocaleString()}`;
+        date.textContent = `⏰ ${formatDate(task.deadline)}`;
 
         meta.append(subject, date);
 
@@ -559,7 +573,6 @@ async function editAssignment(id) {
     task.subject = subject.trim();
     task.deadline = new Date(newDeadline).toISOString();
     task.priority = priority;
-    // task.reminders is preserved as-is
 
     await cancelReminders(task);
     saveAssignments();
