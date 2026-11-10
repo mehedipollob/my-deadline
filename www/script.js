@@ -1,5 +1,6 @@
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { Capacitor } from "@capacitor/core";
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 
 const STORAGE_KEY = "myDeadlineAssignments";
 let assignments = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
@@ -28,6 +29,7 @@ function initApp() {
     const overlay = document.getElementById("overlay");
     const toastHost = document.getElementById("toastHost");
     const reminderChips = document.getElementById("reminderChips");
+    const syncClassroomBtn = document.getElementById("syncClassroomBtn");
     
     // DRAWER LOGIC
     if(menuToggle) {
@@ -117,6 +119,102 @@ function initApp() {
         });
     }
 
+    // GOOGLE CLASSROOM SYNC
+    if(syncClassroomBtn) {
+        syncClassroomBtn.addEventListener('click', async () => {
+            try {
+                showToast("Connecting to Google...", "success");
+                
+                // 1. Sign In
+                const user = await GoogleAuth.signIn();
+                if (!user || !user.authentication || !user.authentication.accessToken) {
+                    throw new Error("Could not get access token.");
+                }
+                const accessToken = user.authentication.accessToken;
+                
+                showToast("Fetching courses...", "success");
+
+                // 2. Fetch Courses
+                const coursesRes = await fetch('https://classroom.googleapis.com/v1/courses', {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                });
+                const coursesData = await coursesRes.json();
+                
+                if (coursesData.error) throw new Error(coursesData.error.message);
+                if (!coursesData.courses) {
+                    showToast("No courses found.", "error");
+                    return;
+                }
+
+                let newAssignmentsCount = 0;
+
+                // 3. Fetch Assignments
+                for (const course of coursesData.courses) {
+                    const workRes = await fetch(`https://classroom.googleapis.com/v1/courses/${course.id}/courseWork?courseWorkState=PUBLISHED`, {
+                        headers: { Authorization: `Bearer ${accessToken}` }
+                    });
+                    const workData = await workRes.json();
+
+                    if (workData.courseWork) {
+                        for (const work of workData.courseWork) {
+                            // Skip if already added
+                            const exists = assignments.find(a => a.name === work.title && a.subject === course.name);
+                            if (exists) continue;
+
+                            // Parse date safely
+                            let deadlineISO = null;
+                            if (work.dueDate) {
+                                const d = work.dueDate;
+                                const t = work.dueTime || {};
+                                const year = d.year || new Date().getFullYear();
+                                const month = d.month ? d.month - 1 : new Date().getMonth();
+                                const day = d.day || new Date().getDate();
+                                const hours = t.hours !== undefined ? t.hours : 23;
+                                const minutes = t.minutes !== undefined ? t.minutes : 59;
+                                
+                                const deadlineDate = new Date(year, month, day, hours, minutes);
+
+                                if (!isNaN(deadlineDate.getTime()) && deadlineDate.getTime() > Date.now()) {
+                                    deadlineISO = deadlineDate.toISOString();
+                                } else if (deadlineDate.getTime() <= Date.now()) {
+                                    continue; // Skip past assignments
+                                }
+                            }
+
+                            const newTask = {
+                                id: Date.now().toString() + Math.floor(Math.random() * 1000), 
+                                name: work.title, 
+                                subject: course.name,
+                                deadline: deadlineISO, 
+                                priority: "Medium", 
+                                completed: false,
+                                reminders: deadlineISO ? DEFAULT_REMINDERS : [], 
+                                notificationIds: []
+                            };
+                            
+                            assignments.push(newTask);
+                            newAssignmentsCount++;
+                        }
+                    }
+                }
+
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(assignments));
+                renderAssignments();
+                
+                if (newAssignmentsCount > 0) {
+                    showToast(`Imported ${newAssignmentsCount} new assignments! 🎉`, "success");
+                } else {
+                    showToast("You're all caught up!", "success");
+                }
+
+            } catch (error) {
+                console.error("Sync Error:", error);
+                showToast(error.message || "Failed to sync. See console.", "error");
+            }
+        });
+    }
+
+    // TOASTS
     function showToast(message, type = "success") {
         const toast = document.createElement("div");
         toast.className = `toast ${type}`;
@@ -129,6 +227,7 @@ function initApp() {
         }, 2600);
     }
 
+    // RENDER UI
     function renderAssignments() {
         assignmentList.innerHTML = "";
         activeCount.textContent = assignments.filter(t => !t.completed).length;
@@ -201,6 +300,7 @@ function initApp() {
         });
     }
 
+    // GLOBAL FUNCTIONS FOR BUTTONS
     window.completeTask = (id) => {
         const task = assignments.find(t => t.id === id);
         if(task) {
